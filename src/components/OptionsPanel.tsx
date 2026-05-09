@@ -57,7 +57,7 @@ export default function OptionsPanel({
             shadow
           />
           <span className="text-sm font-medium text-gray-700">
-            {FURNITURE_CATALOG[selectedFurniture.type].emoji} {FURNITURE_CATALOG[selectedFurniture.type].label}
+            {FURNITURE_CATALOG[selectedFurniture.type].label}
           </span>
         </div>
 
