@@ -108,7 +108,7 @@ export default function App() {
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-100 text-gray-800 select-none">
       {/* Top Bar */}
-      <div className="flex-shrink-0 px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between z-50">
+      <div className="shrink-0 px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between z-50">
         {/* Listo button - top left */}
         <button
           onClick={handleListoPress}

@@ -41,7 +41,7 @@ export default function InventoryPanel({ isOpen, onToggle }: Props) {
   );
 
   return (
-    <div className="flex-shrink-0 bg-white border-t border-gray-200 z-40">
+    <div className="shrink-0 bg-white border-t border-gray-200 z-40">
       {/* Collapsed Header / Toggle */}
       <button
         onClick={onToggle}

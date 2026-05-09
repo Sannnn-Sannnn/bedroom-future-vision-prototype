@@ -634,7 +634,7 @@ export default function FurnitureIcon({ type, color, shape, shadow = false, prev
     // Pared
     poster: <PosterSVG w={w} h={h} color={color}/>,
     painting: <PaintingSVG w={w} h={h} color={color}/>,
-    clock: <ClockSVG w={w} h={h} color={color} shape={0}/>,
+    clock: <ClockSVG w={w} h={h} color={color}/>,
     calendar: <CalendarSVG w={w} h={h} color={color}/>,
     diplomas: <DiplomasSVG w={w} h={h} color={color}/>,
     door: <DoorSVG w={w} h={h} color={color}/>,

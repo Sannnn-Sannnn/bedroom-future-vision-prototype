@@ -1,5 +1,5 @@
 import {
-  FurnitureInstance, FURNITURE_CATALOG, SHAPE_VARIANTS, COLOR_PRESETS,
+  FurnitureInstance, FURNITURE_CATALOG, COLOR_PRESETS,
   isWallMounted, WallId, FloorStyle, WallStyle,
   FLOOR_STYLES, WALL_STYLES, FLOOR_COLORS, WALL_COLORS,
 } from '../types';
@@ -43,7 +43,6 @@ export default function OptionsPanel({
 
   /* ── ELEMENT SELECTED ── */
   if (mode === 'element' && selectedFurniture) {
-    const shapes = SHAPE_VARIANTS[selectedFurniture.type];
     const wm = isWallMounted(selectedFurniture.type);
 
     return (
@@ -108,23 +107,6 @@ export default function OptionsPanel({
               onChange={e => onUpdateFurniture(selectedFurniture.id, { color: e.target.value })}
               className="w-8 h-8 rounded-lg cursor-pointer border border-gray-300 bg-transparent" />
             <span className="text-xs text-gray-400 font-mono">{selectedFurniture.color}</span>
-          </div>
-        </div>
-
-        {/* Shape */}
-        <div>
-          {sec('Forma / Variante')}
-          <div className="grid grid-cols-1 gap-1.5">
-            {shapes.map((name, i) => (
-              <button key={i} onClick={() => onUpdateFurniture(selectedFurniture.id, { shape: i })}
-                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
-                  selectedFurniture.shape === i
-                    ? 'bg-blue-500 text-white font-medium'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}>
-                {name}
-              </button>
-            ))}
           </div>
         </div>
 
