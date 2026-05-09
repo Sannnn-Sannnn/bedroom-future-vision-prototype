@@ -121,42 +121,42 @@ export function calculateDimensionVector(furniture: FurnitureInstance[]): number
   return vector;
 }
 
-// Default sizes for each type (width x height at scale 1)
+// Default sizes for each type (width x height at scale 1) - only one variant per type
 export const FURNITURE_SIZES: Record<FurnitureType, { w: number; h: number }[]> = {
   // Muebles
-  bed:      [{ w: 70, h: 110 }, { w: 95, h: 120 }, { w: 115, h: 130 }],
-  wardrobe: [{ w: 65, h: 45 }, { w: 85, h: 50 }, { w: 110, h: 55 }],
-  desk:     [{ w: 85, h: 55 }, { w: 95, h: 85 }, { w: 115, h: 55 }],
+  bed:      [{ w: 70, h: 110 }],
+  wardrobe: [{ w: 65, h: 45 }],
+  desk:     [{ w: 170, h: 110 }],  // Doubled size
   chair:    [{ w: 45, h: 45 }],
   plant:    [{ w: 60, h: 60 }],
   tv:       [{ w: 80, h: 50 }],
   easel:    [{ w: 55, h: 70 }],
   // Pared
-  poster:   [{ w: 50, h: 70 }, { w: 75, h: 50 }, { w: 60, h: 60 }],
-  painting: [{ w: 60, h: 50 }, { w: 70, h: 55 }],
-  clock:    [{ w: 48, h: 48 }, { w: 45, h: 45 }, { w: 50, h: 50 }],
+  poster:   [{ w: 50, h: 70 }],
+  painting: [{ w: 60, h: 50 }],
+  clock:    [{ w: 48, h: 48 }],
   calendar: [{ w: 40, h: 55 }],
   diplomas: [{ w: 55, h: 45 }],
-  door:     [{ w: 55, h: 80 }, { w: 90, h: 80 }, { w: 75, h: 80 }],
-  window:   [{ w: 55, h: 60 }, { w: 75, h: 60 }, { w: 100, h: 55 }],
+  door:     [{ w: 55, h: 80 }],
+  window:   [{ w: 55, h: 60 }],
   // Decoracion
-  instruments:       [{ w: 50, h: 50 }],
-  exercise_mat:      [{ w: 60, h: 35 }],
+  instruments:       [{ w: 80, h: 50 }],  // Piano shape
+  exercise_mat:      [{ w: 120, h: 70 }], // Doubled size
   gym_equipment:     [{ w: 55, h: 55 }],
   calculator:        [{ w: 30, h: 40 }],
   computer:          [{ w: 50, h: 40 }],
   diary:             [{ w: 35, h: 45 }],
   sewing:            [{ w: 45, h: 40 }],
-  photos:            [{ w: 45, h: 35 }],
-  tools:             [{ w: 50, h: 45 }],
+  photos:            [{ w: 40, h: 50 }],  // Single photo shape
+  tools:             [{ w: 55, h: 40 }],  // Toolbox shape
   board_games:       [{ w: 50, h: 50 }],
   book:              [{ w: 35, h: 45 }],
   plushies:          [{ w: 45, h: 45 }],
-  memories:          [{ w: 45, h: 40 }],
-  puzzles:           [{ w: 50, h: 50 }],
-  souvenirs:         [{ w: 40, h: 40 }],
-  trophies:          [{ w: 35, h: 50 }],
-  folders:           [{ w: 40, h: 50 }],
+  memories:          [{ w: 40, h: 35 }],  // Small box
+  puzzles:           [{ w: 45, h: 45 }],  // Rubik's cube
+  souvenirs:         [{ w: 40, h: 55 }],  // Snow globe
+  trophies:          [{ w: 40, h: 55 }],  // Cup trophy
+  folders:           [{ w: 40, h: 50 }],  // School folder
   work_clothes:      [{ w: 45, h: 55 }],
   going_out_clothes: [{ w: 45, h: 55 }],
   home_clothes:      [{ w: 45, h: 55 }],
@@ -186,73 +186,71 @@ export const FURNITURE_CATALOG: Record<FurnitureType, { label: string; defaultCo
   door:     { label: 'Puerta',      defaultColor: '#9a7b5a', category: 'wall' },
   window:   { label: 'Ventana',     defaultColor: '#a8d8ea', category: 'wall' },
   // Decoracion
-  instruments:       { label: 'Instrumentos musicales', defaultColor: '#b08850', category: 'decor' },
+  instruments:       { label: 'Instrumentos musicales', defaultColor: '#1e1e1e', category: 'decor' },  // Piano black
   exercise_mat:      { label: 'Alfombra de ejercicio',  defaultColor: '#6366f1', category: 'decor' },
   gym_equipment:     { label: 'Elementos de gimnasio', defaultColor: '#475569', category: 'decor' },
   calculator:        { label: 'Calculadora',           defaultColor: '#78716c', category: 'decor' },
   computer:          { label: 'Computadora',           defaultColor: '#1e293b', category: 'decor' },
   diary:             { label: 'Diario personal',       defaultColor: '#db2777', category: 'decor' },
   sewing:            { label: 'Elementos de costura',  defaultColor: '#ca8a04', category: 'decor' },
-  photos:            { label: 'Fotos',                 defaultColor: '#f5f5f4', category: 'decor' },
-  tools:             { label: 'Herramientas',          defaultColor: '#78716c', category: 'decor' },
+  photos:            { label: 'Fotos',                 defaultColor: '#93c5fd', category: 'decor' },  // Light blue
+  tools:             { label: 'Herramientas',          defaultColor: '#3b82f6', category: 'decor' },  // Blue toolbox
   board_games:       { label: 'Juegos de mesa sociales', defaultColor: '#059669', category: 'decor' },
-  book:              { label: 'Libro',                 defaultColor: '#9333ea', category: 'decor' },
-  plushies:          { label: 'Peluches y juguetes',   defaultColor: '#db2777', category: 'decor' },
+  book:              { label: 'Libro',                 defaultColor: '#22c55e', category: 'decor' },  // Green
+  plushies:          { label: 'Peluches y juguetes',   defaultColor: '#a16207', category: 'decor' },  // Brown
   memories:          { label: 'Recuerdos',             defaultColor: '#d97706', category: 'decor' },
-  puzzles:           { label: 'Rompecabezas',          defaultColor: '#0891b2', category: 'decor' },
-  souvenirs:         { label: 'Souvenirs',             defaultColor: '#65a30d', category: 'decor' },
-  trophies:          { label: 'Trofeos',               defaultColor: '#ca8a04', category: 'decor' },
+  puzzles:           { label: 'Rompecabezas',          defaultColor: '#ef4444', category: 'decor' },  // Red for Rubik's
+  souvenirs:         { label: 'Souvenirs',             defaultColor: '#a8d8ea', category: 'decor' },  // Snow globe glass
+  trophies:          { label: 'Trofeos',               defaultColor: '#fbbf24', category: 'decor' },  // Gold
   folders:           { label: 'Carpetas',              defaultColor: '#6366f1', category: 'decor' },
-  work_clothes:      { label: 'Ropa para trabajo',     defaultColor: '#475569', category: 'decor' },
-  going_out_clothes: { label: 'Ropa para salir',       defaultColor: '#c05050', category: 'decor' },
+  work_clothes:      { label: 'Ropa para trabajo',     defaultColor: '#2d4a3e', category: 'decor' },  // Dirty dark green
+  going_out_clothes: { label: 'Ropa para salir',       defaultColor: '#ef4444', category: 'decor' },  // Red
   home_clothes:      { label: 'Ropa de entrecasa',     defaultColor: '#7c8eb5', category: 'decor' },
-  elegant_clothes:   { label: 'Ropa elegante',         defaultColor: '#1e293b', category: 'decor' },
-  work_uniform:      { label: 'Uniforme de trabajo',   defaultColor: '#0891b2', category: 'decor' },
-  formal_clothes:    { label: 'Ropa formal',           defaultColor: '#1e293b', category: 'decor' },
-  agenda:            { label: 'Agenda',                defaultColor: '#9333ea', category: 'decor' },
+  elegant_clothes:   { label: 'Ropa elegante',         defaultColor: '#f5f5f4', category: 'decor' },  // White suit
+  work_uniform:      { label: 'Uniforme de trabajo',   defaultColor: '#f5f5f4', category: 'decor' },  // White shirt
+  formal_clothes:    { label: 'Ropa formal',           defaultColor: '#1e1e1e', category: 'decor' },  // Black suit
+  agenda:            { label: 'Agenda',                defaultColor: '#facc15', category: 'decor' },  // Yellow
 };
 
+// Only one variant per type now
 export const SHAPE_VARIANTS: Record<FurnitureType, string[]> = {
-  // Muebles
-  bed:      ['1 Plaza', '1.5 Plazas', '2 Plazas'],
-  wardrobe: ['Pequeno', 'Mediano', 'Grande'],
-  desk:     ['Compacto', 'En L', 'Largo'],
-  chair:    ['Estandar'],
+  bed:      ['Cama'],
+  wardrobe: ['Armario'],
+  desk:     ['Escritorio'],
+  chair:    ['Silla'],
   plant:    ['Planta'],
-  tv:       ['Pantalla'],
+  tv:       ['TV'],
   easel:    ['Caballete'],
-  // Pared
-  poster:   ['Vertical', 'Horizontal', 'Cuadrado'],
-  painting: ['Horizontal', 'Cuadrado'],
-  clock:    ['Redondo', 'Cuadrado', 'Hexagonal'],
-  calendar: ['Mensual'],
-  diplomas: ['Marco'],
-  door:     ['Simple', 'Doble', 'Corrediza'],
-  window:   ['Simple', 'Doble', 'Panoramica'],
-  // Decoracion
-  instruments:       ['Instrumento'],
+  poster:   ['Poster'],
+  painting: ['Cuadro'],
+  clock:    ['Reloj'],
+  calendar: ['Calendario'],
+  diplomas: ['Diploma'],
+  door:     ['Puerta'],
+  window:   ['Ventana'],
+  instruments:       ['Piano'],
   exercise_mat:      ['Colchoneta'],
   gym_equipment:     ['Pesas'],
   calculator:        ['Calculadora'],
   computer:          ['Laptop'],
   diary:             ['Diario'],
   sewing:            ['Kit'],
-  photos:            ['Album'],
+  photos:            ['Foto'],
   tools:             ['Caja'],
   board_games:       ['Juego'],
   book:              ['Libro'],
   plushies:          ['Peluche'],
   memories:          ['Caja'],
-  puzzles:           ['Puzzle'],
-  souvenirs:         ['Objeto'],
+  puzzles:           ['Cubo'],
+  souvenirs:         ['Globo'],
   trophies:          ['Copa'],
   folders:           ['Carpeta'],
-  work_clothes:      ['Conjunto'],
-  going_out_clothes: ['Conjunto'],
-  home_clothes:      ['Conjunto'],
-  elegant_clothes:   ['Conjunto'],
-  work_uniform:      ['Uniforme'],
-  formal_clothes:    ['Conjunto'],
+  work_clothes:      ['Remera'],
+  going_out_clothes: ['Remera'],
+  home_clothes:      ['Remera'],
+  elegant_clothes:   ['Traje'],
+  work_uniform:      ['Camisa'],
+  formal_clothes:    ['Traje'],
   agenda:            ['Agenda'],
 };
 
