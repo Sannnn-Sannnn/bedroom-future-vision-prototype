@@ -1,4 +1,3 @@
-import { useState, useRef, useCallback } from 'react';
 import { FURNITURE_CATALOG, FurnitureType } from '../types';
 import FurnitureIcon from './FurnitureIcon';
 import { ChevronUp } from 'lucide-react';
@@ -6,59 +5,38 @@ import { ChevronUp } from 'lucide-react';
 interface Props {
   isOpen: boolean;
   onToggle: () => void;
-  onItemLongPress: (type: FurnitureType) => void;
 }
 
-export default function InventoryPanel({ isOpen, onToggle, onItemLongPress }: Props) {
+export default function InventoryPanel({ isOpen, onToggle }: Props) {
   const all = Object.entries(FURNITURE_CATALOG) as [FurnitureType, (typeof FURNITURE_CATALOG)[FurnitureType]][];
   const floorItems = all.filter(([, v]) => v.category === 'floor');
   const wallItems = all.filter(([, v]) => v.category === 'wall');
 
-  const [pressedItem, setPressedItem] = useState<FurnitureType | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const handleDragStart = (e: React.DragEvent, type: FurnitureType) => {
+    e.dataTransfer.setData('furnitureType', type);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
 
-  const handleTouchStart = useCallback((type: FurnitureType) => {
-    setPressedItem(type);
-    longPressTimerRef.current = setTimeout(() => {
-      onItemLongPress(type);
-      setPressedItem(null);
-    }, 1000);
-  }, [onItemLongPress]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    setPressedItem(null);
-  }, []);
+  const handleTouchStart = (e: React.TouchEvent, type: FurnitureType) => {
+    // Store the type in a data attribute for touch drag handling
+    const target = e.currentTarget as HTMLElement;
+    target.dataset.draggingType = type;
+  };
 
   const renderItem = ([type, info]: [FurnitureType, (typeof FURNITURE_CATALOG)[FurnitureType]]) => (
     <div
       key={type}
-      onTouchStart={() => handleTouchStart(type)}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
-      onMouseDown={() => handleTouchStart(type)}
-      onMouseUp={handleTouchEnd}
-      onMouseLeave={handleTouchEnd}
-      className={`bg-white border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
-        pressedItem === type 
-          ? 'border-blue-500 bg-blue-50 scale-95' 
-          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:scale-95'
-      }`}
+      draggable
+      onDragStart={(e) => handleDragStart(e, type)}
+      onTouchStart={(e) => handleTouchStart(e, type)}
+      className="bg-white border rounded-lg p-3 cursor-grab active:cursor-grabbing transition-all duration-200 border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:scale-95"
     >
       <div className="flex flex-col items-center gap-2">
-        <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden pointer-events-none">
           <FurnitureIcon type={type} color={info.defaultColor} shape={0} preview />
         </div>
-        <span className="text-xs font-medium text-gray-700 text-center">{info.label}</span>
+        <span className="text-xs font-medium text-gray-700 text-center pointer-events-none">{info.label}</span>
       </div>
-      {pressedItem === type && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
     </div>
   );
 

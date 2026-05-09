@@ -6,7 +6,7 @@ import {
 import InventoryPanel from './components/InventoryPanel';
 import OptionsPanel from './components/OptionsPanel';
 import Room from './components/Room';
-import { Pencil, HelpCircle, X } from 'lucide-react';
+import { Pencil, HelpCircle, X, Trash2 } from 'lucide-react';
 
 function genId() {
   return Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
@@ -41,7 +41,6 @@ export default function App() {
   const [elementPopupOpen, setElementPopupOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [listoPressed, setListoPressed] = useState(false);
-  const [placingItem, setPlacingItem] = useState<FurnitureType | null>(null);
 
   const persist = useCallback((s: RoomState) => { setState(s); saveState(s); }, []);
 
@@ -60,7 +59,6 @@ export default function App() {
     };
     persist({ ...state, furniture: [...state.furniture, item] });
     setSelectedId(item.id);
-    setPlacingItem(null);
   }, [state, persist]);
 
   const handleMoveTo = useCallback((id: string, wall: WallId | undefined, x: number, y: number) => {
@@ -80,17 +78,14 @@ export default function App() {
     setElementPopupOpen(false);
   }, [state, persist]);
 
-  // Handle long press on inventory item - hide panel and start placing
-  const handleInventoryItemLongPress = useCallback((type: FurnitureType) => {
-    setInventoryOpen(false);
-    setPlacingItem(type);
-  }, []);
-
-  // Handle long press on placed element - show popup
-  const handleElementLongPress = useCallback((id: string) => {
-    setSelectedId(id);
-    setElementPopupOpen(true);
-  }, []);
+  // Handle pencil button - opens element options if selected, room options otherwise
+  const handlePencilPress = useCallback(() => {
+    if (selectedId) {
+      setElementPopupOpen(true);
+    } else {
+      setRoomOptionsOpen(true);
+    }
+  }, [selectedId]);
 
   const handleListoPress = () => {
     setListoPressed(true);
@@ -124,10 +119,14 @@ export default function App() {
             <HelpCircle className="w-5 h-5 text-gray-600" />
           </button>
 
-          {/* Room options (pencil) button */}
+          {/* Pencil button - element options if selected, room options otherwise */}
           <button
-            onClick={() => setRoomOptionsOpen(true)}
-            className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-colors"
+            onClick={handlePencilPress}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              selectedId 
+                ? 'bg-amber-500 hover:bg-amber-600' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            }`}
           >
             <Pencil className="w-5 h-5 text-white" />
           </button>
@@ -147,9 +146,6 @@ export default function App() {
           floorColor={state.floorColor}
           wallStyle={state.wallStyle}
           wallColor={state.wallColor}
-          onElementLongPress={handleElementLongPress}
-          placingItem={placingItem}
-          onCancelPlacing={() => setPlacingItem(null)}
         />
       </div>
 
@@ -157,7 +153,6 @@ export default function App() {
       <InventoryPanel 
         isOpen={inventoryOpen}
         onToggle={() => setInventoryOpen(!inventoryOpen)}
-        onItemLongPress={handleInventoryItemLongPress}
       />
 
       {/* Room Options Panel (slide from right) */}
@@ -212,14 +207,9 @@ export default function App() {
             onClick={() => setElementPopupOpen(false)}
           />
           <div className="relative w-full max-w-lg bg-white rounded-t-2xl shadow-xl flex flex-col max-h-[85vh] animate-slide-up">
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-2xl flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-gray-700">Personalizar Elemento</h2>
-                <p className="text-xs text-blue-500 font-medium">{FURNITURE_CATALOG[sel.type].emoji} {FURNITURE_CATALOG[sel.type].label}</p>
-              </div>
-              <button onClick={() => setElementPopupOpen(false)} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
+            {/* Drag handle */}
+            <div className="flex justify-center py-3">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
             <div className="flex-1 overflow-y-auto">
               <OptionsPanel
@@ -228,7 +218,7 @@ export default function App() {
                 onRoomDescriptionChange={handleDescChange}
                 selectedFurniture={sel}
                 onUpdateFurniture={handleUpdate}
-                onDeleteFurniture={handleDelete}
+                onDeleteFurniture={() => {}}
                 floorStyle={state.floorStyle}
                 floorColor={state.floorColor}
                 wallStyle={state.wallStyle}
@@ -239,10 +229,16 @@ export default function App() {
                 onWallColorChange={(c: string) => persist({ ...state, wallColor: c })}
               />
             </div>
-            <div className="p-4 border-t border-gray-200 bg-gray-50">
+            <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center gap-3">
+              <button
+                onClick={() => handleDelete(sel.id)}
+                className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors active:scale-95"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setElementPopupOpen(false)}
-                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
+                className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
               >
                 Listo
               </button>
@@ -266,10 +262,11 @@ export default function App() {
               <h2 className="text-lg font-bold text-gray-800">Instrucciones</h2>
             </div>
             <div className="space-y-3 text-sm text-gray-600 leading-relaxed">
-              <p>Toca en el panel de abajo para ver los elementos disponibles</p>
-              <p>Mantén presionado un elemento por 1 segundo para colocarlo en la habitación</p>
-              <p>Mantén presionado un elemento en la habitación para personalizarlo</p>
-              <p>Usa el botón del lápiz para cambiar el piso y las paredes</p>
+              <p>Abre el panel de abajo para ver los elementos disponibles</p>
+              <p>Arrastra un elemento desde el panel y suéltalo en la habitación para colocarlo</p>
+              <p>Toca un elemento en la habitación para seleccionarlo</p>
+              <p>Usa el botón del lápiz para personalizar el elemento seleccionado</p>
+              <p>Sin elemento seleccionado, el botón del lápiz abre las opciones de la habitación</p>
               <p>Arrastra los elementos para moverlos entre zonas</p>
             </div>
             <button

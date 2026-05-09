@@ -25,9 +25,6 @@ interface Props {
   floorColor: string;
   wallStyle: WallStyle;
   wallColor: string;
-  onElementLongPress: (id: string) => void;
-  placingItem: FurnitureType | null;
-  onCancelPlacing: () => void;
 }
 
 const dk = (hex: string, a: number) => {
@@ -160,14 +157,11 @@ function autoRot(wall?: WallId): number {
 export default function Room({
   furniture, selectedId, onSelect, onMoveTo,
   floorStyle, floorColor, wallStyle, wallColor, onDrop,
-  onElementLongPress, placingItem, onCancelPlacing,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const [dragOverZone, setDragOverZone] = useState<string | null>(null);
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const [pressedItemId, setPressedItemId] = useState<string | null>(null);
 
   const outerPos = useCallback((e: { clientX: number; clientY: number }) => {
     if (!containerRef.current) return { x: 0, y: 0 };
@@ -189,24 +183,12 @@ export default function Room({
 
   const handleMouseUp = useCallback(() => {
     setDraggingId(null);
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    setPressedItemId(null);
   }, []);
 
   const itemDown = useCallback((e: React.MouseEvent | React.TouchEvent, item: FurnitureInstance) => {
     e.stopPropagation();
     const clientPos = 'touches' in e ? e.touches[0] : e;
     onSelect(item.id);
-    setPressedItemId(item.id);
-    
-    // Start long press timer
-    longPressTimerRef.current = setTimeout(() => {
-      onElementLongPress(item.id);
-      setPressedItemId(null);
-    }, 1000);
 
     setDraggingId(item.id);
     const op = outerPos(clientPos);
@@ -217,7 +199,7 @@ export default function Room({
     else if (zone === 'front') { ix += FLOOR_X; iy += FLOOR_Y + FLOOR_H; }
     else if (zone === 'right') { ix += FLOOR_X + FLOOR_W; }
     dragOffsetRef.current = { x: op.x - ix, y: op.y - iy };
-  }, [onSelect, outerPos, onElementLongPress]);
+  }, [onSelect, outerPos]);
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); const p = outerPos(e); setDragOverZone(hitZone(p.x, p.y) as string); };
   const handleDragLeave = () => setDragOverZone(null);
@@ -234,22 +216,6 @@ export default function Room({
     onDrop(t, local.x, local.y, wm ? finalWall : undefined);
   };
 
-  // Handle tap to place item when in placing mode
-  const handleContainerClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (!placingItem) {
-      onSelect(null);
-      return;
-    }
-    const clientPos = 'touches' in e ? e.touches[0] : e;
-    const op = outerPos(clientPos);
-    const zone = hitZone(op.x, op.y);
-    const wm = isWallMounted(placingItem);
-    const finalWall = zone !== 'floor' ? (zone as WallId) : (wm ? 'back' as WallId : undefined);
-    const sz = FURNITURE_SIZES[placingItem][0];
-    const local = toLocal(op.x - sz.w / 2, op.y - sz.h / 2, finalWall || 'floor');
-    onDrop(placingItem, local.x, local.y, wm ? finalWall : undefined);
-  }, [placingItem, outerPos, onDrop, onSelect]);
-
   const handleBgMouseDown = useCallback(() => {
     onSelect(null);
   }, [onSelect]);
@@ -258,7 +224,6 @@ export default function Room({
     items.map(item => {
       const sel = selectedId === item.id;
       const drg = draggingId === item.id;
-      const pressed = pressedItemId === item.id;
       const wm = isWallMounted(item.type);
       const rot = wm ? autoRot(item.wall) + (item.rotation || 0) : (item.rotation || 0);
       return (
@@ -275,7 +240,6 @@ export default function Room({
           onTouchEnd={handleMouseUp}
         >
           {sel && <div className="absolute -inset-2 border-2 border-blue-500 rounded-sm bg-blue-100/15 pointer-events-none" style={{ animation: 'selPulse 1.5s ease-in-out infinite' }} />}
-          {pressed && <div className="absolute -inset-2 border-2 border-blue-400 rounded-sm bg-blue-200/30 pointer-events-none animate-pulse" />}
           <div className="absolute -inset-1 border border-transparent group-hover:border-blue-400/30 rounded-sm pointer-events-none transition-colors" />
           <FurnitureIcon type={item.type} color={item.color} shape={item.shape} shadow={!drg} />
           {item.description && !drg && (
@@ -305,14 +269,14 @@ export default function Room({
 
   return (
     <div className="flex-1 flex flex-col bg-gray-100 overflow-hidden">
-      <div className="flex-1 flex items-center justify-center p-2 overflow-auto">
+      <div className="flex-1 flex items-center justify-center p-3 overflow-auto">
         <div ref={containerRef}
           style={{ 
             width: '100%', 
             maxWidth: OUTER_W, 
             aspectRatio: `${OUTER_W}/${OUTER_H}`,
             position: 'relative', 
-            cursor: placingItem ? 'crosshair' : draggingId ? 'grabbing' : 'default' 
+            cursor: draggingId ? 'grabbing' : 'default' 
           }}
           onMouseMove={handleMouseMove} 
           onMouseUp={handleMouseUp} 
@@ -322,7 +286,6 @@ export default function Room({
           onDragOver={handleDragOver} 
           onDragLeave={handleDragLeave} 
           onDrop={handleContainerDrop}
-          onClick={handleContainerClick}
         >
           <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet" style={{ zIndex: 0 }}>
             <WallPatterns wallStyle={wallStyle} wallColor={wallColor} />
@@ -360,29 +323,10 @@ export default function Room({
             <line x1={OBR.x} y1={OBR.y} x2={FBR.x} y2={FBR.y} stroke="rgba(0,0,0,0.10)" strokeWidth={1} />
           </svg>
 
-          {floorItems.length === 0 && !dragOverZone && !placingItem && (
+          {floorItems.length === 0 && !dragOverZone && (
             <div className="absolute pointer-events-none opacity-[0.18]" style={{ left: `${(FLOOR_X / OUTER_W) * 100}%`, top: `${(FLOOR_Y / OUTER_H) * 100}%`, width: `${(FLOOR_W / OUTER_W) * 100}%`, height: `${(FLOOR_H / OUTER_H) * 100}%`, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="text-center"><p className="text-xl mb-0.5">🏡</p><p className="text-[9px] text-gray-500 font-medium">Arrastra muebles aquí</p></div>
             </div>
-          )}
-
-          {/* Placing item indicator */}
-          {placingItem && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[100]">
-              <div className="bg-blue-500/90 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
-                Toca donde quieras colocar {FURNITURE_CATALOG[placingItem].label.toLowerCase()}
-              </div>
-            </div>
-          )}
-
-          {/* Cancel placing button */}
-          {placingItem && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onCancelPlacing(); }}
-              className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/90 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-[101] hover:bg-gray-700 active:scale-95 transition-all"
-            >
-              Cancelar
-            </button>
           )}
 
           {/* Deselect overlay */}

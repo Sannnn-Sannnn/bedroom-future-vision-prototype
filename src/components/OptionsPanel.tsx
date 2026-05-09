@@ -48,14 +48,17 @@ export default function OptionsPanel({
 
     return (
       <div className="p-4 space-y-5">
-        {/* Preview */}
-        <div className="flex justify-center py-4 bg-gray-50 rounded-xl border border-gray-100">
+        {/* Preview with label */}
+        <div className="flex flex-col items-center gap-2 py-4 bg-gray-50 rounded-xl border border-gray-100">
           <FurnitureIcon 
             type={selectedFurniture.type} 
             color={selectedFurniture.color} 
             shape={selectedFurniture.shape}
             shadow
           />
+          <span className="text-sm font-medium text-gray-700">
+            {FURNITURE_CATALOG[selectedFurniture.type].emoji} {FURNITURE_CATALOG[selectedFurniture.type].label}
+          </span>
         </div>
 
         {/* Description */}
@@ -143,12 +146,6 @@ export default function OptionsPanel({
             onChange={e => onUpdateFurniture(selectedFurniture.id, { scale: Number(e.target.value) })}
             className="w-full accent-blue-500" />
         </div>
-
-        {/* Delete */}
-        <button onClick={() => onDeleteFurniture(selectedFurniture.id)}
-          className="w-full px-3 py-3 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg text-sm font-medium transition-colors border border-red-200 active:scale-[0.98]">
-          Eliminar
-        </button>
       </div>
     );
   }
