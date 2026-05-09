@@ -7,7 +7,7 @@ import {
 import InventoryPanel from './components/InventoryPanel';
 import OptionsPanel from './components/OptionsPanel';
 import Room from './components/Room';
-import { Pencil, HelpCircle, X, Trash2 } from 'lucide-react';
+import { Pencil, HelpCircle, X, Trash2, RotateCcw } from 'lucide-react';
 
 function genId() {
   return Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
@@ -41,7 +41,6 @@ export default function App() {
   const [roomOptionsOpen, setRoomOptionsOpen] = useState(false);
   const [elementPopupOpen, setElementPopupOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [debugOpen, setDebugOpen] = useState(false);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [listoPressed, setListoPressed] = useState(false);
 
@@ -81,7 +80,23 @@ export default function App() {
     setElementPopupOpen(false);
   }, [state, persist]);
 
-  // Handle pencil button - opens element options if selected, room options otherwise
+  // --- NUEVA FUNCIÓN DE RESETEO ---
+  const handleResetFurniture = useCallback(() => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar todos los muebles?')) {
+      persist({ ...state, furniture: [] });
+      setSelectedId(null);
+    }
+  }, [state, persist]);
+
+  const toggleInventory = useCallback((forceState?: boolean) => {
+    setInventoryOpen(prev => forceState !== undefined ? forceState : !prev);
+  }, []);
+
+  const handleQuickDrop = useCallback((type: FurnitureType) => {
+    handleDrop(type, 140, 190); 
+    setInventoryOpen(false);
+  }, [handleDrop]);
+
   const handlePencilPress = useCallback(() => {
     if (selectedId) {
       setElementPopupOpen(true);
@@ -97,31 +112,34 @@ export default function App() {
   };
 
   const sel = state.furniture.find(f => f.id === selectedId) || null;
-
-  // Calculate dimension vector
   const dimensionVector = calculateDimensionVector(state.furniture);
   const maxDimValue = Math.max(...dimensionVector, 1);
-
-  // Get unique furniture types for debug panel
-  const uniqueTypes = Array.from(new Set(state.furniture.map(f => f.type)));
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-100 text-gray-800 select-none">
       {/* Top Bar */}
-      <div className="shrink-0 px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between z-50">
-        {/* Listo button - top left */}
+      <div className="shrink-0 px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between z-50 shadow-sm">
         <button
           onClick={handleListoPress}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+          className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-150 ${
             listoPressed 
               ? 'bg-green-600 text-white scale-95' 
               : 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
           }`}
         >
-          Listo!
+          ¡Listo!
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Reset Button */}
+          <button
+            onClick={handleResetFurniture}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm bg-red-500 hover:bg-red-600'`}
+        
+          >
+            <RotateCcw className="w-5 h-5 text-white" />
+          </button>
+
           {/* Help button */}
           <button
             onClick={() => setHelpOpen(true)}
@@ -130,10 +148,10 @@ export default function App() {
             <HelpCircle className="w-5 h-5 text-gray-600" />
           </button>
 
-          {/* Pencil button - element options if selected, room options otherwise */}
+          {/* Pencil button */}
           <button
             onClick={handlePencilPress}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm ${
               selectedId 
                 ? 'bg-amber-500 hover:bg-amber-600' 
                 : 'bg-blue-500 hover:bg-blue-600'
@@ -145,7 +163,7 @@ export default function App() {
       </div>
 
       {/* Main Room Area */}
-      <div className="flex-1 overflow-hidden relative">
+      <div className="flex-1 overflow-hidden relative bg-slate-200">
         <Room
           furniture={state.furniture}
           selectedId={selectedId}
@@ -163,19 +181,17 @@ export default function App() {
       {/* Bottom Inventory Panel */}
       <InventoryPanel 
         isOpen={inventoryOpen}
-        onToggle={() => setInventoryOpen(!inventoryOpen)}
+        onToggle={toggleInventory}
+        onQuickDrop={handleQuickDrop}
       />
 
-      {/* Room Options Panel (slide from right) */}
+      {/* Room Options Panel */}
       {roomOptionsOpen && (
         <div className="fixed inset-0 z-50">
-          <div 
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setRoomOptionsOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/20" onClick={() => setRoomOptionsOpen(false)} />
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl flex flex-col animate-slide-in-right">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-gray-700">Personalizar Habitacion</h2>
+              <h2 className="text-sm font-bold text-gray-700">Personalizar Habitación</h2>
               <button onClick={() => setRoomOptionsOpen(false)} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -213,12 +229,8 @@ export default function App() {
       {/* Element Options Popup */}
       {elementPopupOpen && sel && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div 
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setElementPopupOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setElementPopupOpen(false)} />
           <div className="relative w-full max-w-lg bg-white rounded-t-2xl shadow-xl flex flex-col max-h-[85vh] animate-slide-up">
-            {/* Drag handle */}
             <div className="flex justify-center py-3">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
@@ -243,13 +255,13 @@ export default function App() {
             <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center gap-3">
               <button
                 onClick={() => handleDelete(sel.id)}
-                className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors active:scale-95"
+                className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-colors active:scale-95 shadow-md"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setElementPopupOpen(false)}
-                className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
+                className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98] shadow-md"
               >
                 Listo
               </button>
@@ -261,10 +273,7 @@ export default function App() {
       {/* Help Modal */}
       {helpOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setHelpOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setHelpOpen(false)} />
           <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -273,58 +282,27 @@ export default function App() {
               <h2 className="text-lg font-bold text-gray-800">Instrucciones</h2>
             </div>
             <div className="space-y-3 text-sm text-gray-600 leading-relaxed">
-              <p>Abre el panel de abajo para ver los elementos disponibles</p>
-              <p>Arrastra un elemento desde el panel y sueltalo en la habitacion para colocarlo</p>
-              <p>Toca un elemento en la habitacion para seleccionarlo</p>
-              <p>Usa el boton del lapiz para personalizar el elemento seleccionado</p>
-              <p>Sin elemento seleccionado, el boton del lapiz abre las opciones de la habitacion</p>
-              <p>Arrastra los elementos para moverlos entre zonas</p>
+              <p>• Abre el panel de abajo para ver los elementos disponibles.</p>
+              <p>• Arrastra un elemento a la habitación para colocarlo.</p>
+              <p>• Toca un elemento para seleccionarlo y moverlo.</p>
+              <p>• Usa el <b>lápiz</b> para personalizar colores y estilos.</p>
+              <p>• Usa el botón de <b>flecha circular</b> para borrar todo y empezar de cero.</p>
             </div>
             
-            {/* Debug Panel Toggle */}
-            <div className="mt-5 pt-4 border-t border-gray-200">
+            <div className="mt-6 space-y-2">
               <button
-                onClick={() => setDebugOpen(!debugOpen)}
-                className="w-full py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => { setHelpOpen(false); }}
+                className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
               >
-                {debugOpen ? 'Ocultar Panel de Debug' : 'Mostrar Panel de Debug'}
+                Entendido
               </button>
-              
-              {debugOpen && (
-                <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-60 overflow-y-auto">
-                  <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Elementos y Puntuaciones</h3>
-                  {uniqueTypes.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic">No hay elementos colocados</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {uniqueTypes.map(type => {
-                        const dims = FURNITURE_DIMENSIONS[type];
-                        const label = FURNITURE_CATALOG[type].label;
-                        const scores = dims.map((v, i) => v > 0 ? `D${i+1}` : null).filter(Boolean).join(', ');
-                        return (
-                          <div key={type} className="flex justify-between items-center text-xs">
-                            <span className="text-gray-700">{label}</span>
-                            <span className="text-gray-500 font-mono">{scores || 'X'}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  <h3 className="text-xs font-bold text-gray-500 uppercase mt-4 mb-2">Vector Total</h3>
-                  <div className="font-mono text-xs text-gray-600">
-                    [{dimensionVector.join(', ')}]
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => { setHelpOpen(false); handleResetFurniture(); }}
+                className="w-full py-2 text-red-500 text-sm font-medium hover:bg-red-50 rounded-lg transition-colors"
+              >
+                Reiniciar diseño
+              </button>
             </div>
-            
-            <button
-              onClick={() => { setHelpOpen(false); setDebugOpen(false); }}
-              className="w-full mt-5 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
-            >
-              Entendido
-            </button>
           </div>
         </div>
       )}
@@ -332,13 +310,10 @@ export default function App() {
       {/* Results Panel */}
       {resultsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setResultsOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/40" onClick={() => setResultsOpen(false)} />
           <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-5 animate-scale-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800">Resultados</h2>
+              <h2 className="text-lg font-bold text-gray-800">Análisis del Espacio</h2>
               <button onClick={() => setResultsOpen(false)} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -351,12 +326,12 @@ export default function App() {
                 return (
                   <div key={index}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-600 leading-tight">{label}</span>
+                      <span className="text-xs text-gray-600 leading-tight uppercase font-semibold">{label}</span>
                       <span className="text-xs font-bold text-gray-800 ml-2">{value}</span>
                     </div>
-                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
                       <div 
-                        className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                        className="h-full bg-blue-500 rounded-full transition-all duration-700 ease-out"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -369,7 +344,7 @@ export default function App() {
               onClick={() => setResultsOpen(false)}
               className="w-full mt-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98]"
             >
-              Cerrar
+              Continuar Editando
             </button>
           </div>
         </div>

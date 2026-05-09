@@ -3,7 +3,6 @@ import { FurnitureType, FURNITURE_SIZES } from '../types';
 interface Props {
   type: FurnitureType;
   color: string;
-  shape: number;
   shadow?: boolean;
   preview?: boolean;
 }
@@ -47,12 +46,9 @@ function WardrobeSVG({ w, h, color }: { w: number; h: number; color: string }) {
 
 function DeskSVG({ w, h, color }: { w: number; h: number; color: string }) {
   const m = 2;
-  const topH = h * 0.6;
-  const hi = 3;
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <rect x={m} y={m} width={w - m * 2} height={topH} rx={1} fill={color} stroke={D(color,35)} strokeWidth={1.5}/>
-      <rect x={m + hi} y={m + hi} width={w - m * 2 - hi * 2} height={topH - hi * 2} rx={0.5} fill="none" stroke={L(color,30)} strokeWidth={1} opacity={0.25}/>
+      <rect x={m} y={m} width={w-5} height={h-5} rx={1} fill={color} stroke={D(color,35)} strokeWidth={1.5}/>
     </svg>
   );
 }
@@ -615,8 +611,8 @@ function AgendaSVG({ w, h, color }: { w: number; h: number; color: string }) {
   );
 }
 
-export default function FurnitureIcon({ type, color, shape, shadow = false, preview = false }: Props) {
-  const idx = Math.min(shape, FURNITURE_SIZES[type].length - 1);
+export default function FurnitureIcon({ type, color, shadow = false, preview = false }: Props) {
+  const idx = Math.min(0, FURNITURE_SIZES[type].length - 1);
   const sz = FURNITURE_SIZES[type][idx];
   const scale = preview ? 0.45 : 1;
   const w = sz.w * scale, h = sz.h * scale;
