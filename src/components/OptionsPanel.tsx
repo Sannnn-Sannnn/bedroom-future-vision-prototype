@@ -52,7 +52,6 @@ export default function OptionsPanel({
           <FurnitureIcon 
             type={selectedFurniture.type} 
             color={selectedFurniture.color} 
-            shape={selectedFurniture.shape}
             shadow
           />
           <span className="text-sm font-medium text-gray-700">

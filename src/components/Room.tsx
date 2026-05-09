@@ -262,7 +262,7 @@ export default function Room({
         >
           {sel && <div className="absolute -inset-2 border-2 border-blue-500 rounded-sm bg-blue-100/15 pointer-events-none" style={{ animation: 'selPulse 1.5s ease-in-out infinite' }} />}
           <div className="absolute -inset-1 border border-transparent group-hover:border-blue-400/30 rounded-sm pointer-events-none transition-colors" />
-          <FurnitureIcon type={item.type} color={item.color} shape={item.shape} shadow={!drg} />
+          <FurnitureIcon type={item.type} color={item.color} shadow={!drg} />
           {item.description && !drg && (
             <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white text-gray-500 text-[7px] px-1.5 py-0.5 rounded-sm shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-gray-200 z-60">
               {item.description.length > 25 ? item.description.slice(0, 25) + '…' : item.description}

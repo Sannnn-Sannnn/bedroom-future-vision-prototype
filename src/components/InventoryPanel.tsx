@@ -66,7 +66,7 @@ export default function InventoryPanel({ isOpen, onToggle, onQuickDrop }: Props)
     >
       <div className="flex flex-col items-center gap-1 pointer-events-none">
         <div className="w-12 h-12 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-          <FurnitureIcon type={type} color={info.defaultColor} shape={0} preview />
+          <FurnitureIcon type={type} color={info.defaultColor} preview />
         </div>
         <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
           {info.label}
