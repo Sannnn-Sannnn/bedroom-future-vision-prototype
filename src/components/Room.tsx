@@ -323,12 +323,6 @@ export default function Room({
             <line x1={OBR.x} y1={OBR.y} x2={FBR.x} y2={FBR.y} stroke="rgba(0,0,0,0.10)" strokeWidth={1} />
           </svg>
 
-          {floorItems.length === 0 && !dragOverZone && (
-            <div className="absolute pointer-events-none opacity-[0.18]" style={{ left: `${(FLOOR_X / OUTER_W) * 100}%`, top: `${(FLOOR_Y / OUTER_H) * 100}%`, width: `${(FLOOR_W / OUTER_W) * 100}%`, height: `${(FLOOR_H / OUTER_H) * 100}%`, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className="text-center"><p className="text-xl mb-0.5">🏡</p><p className="text-[9px] text-gray-500 font-medium">Arrastra muebles aquí</p></div>
-            </div>
-          )}
-
           {/* Deselect overlay */}
           <div className="absolute inset-0" style={{ zIndex: 5 }} onMouseDown={handleBgMouseDown} />
 
