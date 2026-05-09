@@ -140,7 +140,7 @@ export const FURNITURE_SIZES: Record<FurnitureType, { w: number; h: number }[]> 
   door:     [{ w: 55, h: 80 }],
   window:   [{ w: 55, h: 60 }],
   // Decoracion
-  instruments:       [{ w: 80, h: 50 }],  // Piano shape
+  instruments:       [{ w: 100, h: 50 }],  // Piano shape
   exercise_mat:      [{ w: 120, h: 70 }], // Doubled size
   gym_equipment:     [{ w: 55, h: 55 }],
   calculator:        [{ w: 30, h: 40 }],
@@ -179,7 +179,7 @@ export const FURNITURE_CATALOG: Record<FurnitureType, { label: string; defaultCo
   easel:    { label: 'Caballete',   defaultColor: '#c4a26e', category: 'floor' },
   // Pared (wall)
   poster:   { label: 'Poster',      defaultColor: '#c05050', category: 'wall' },
-  painting: { label: 'Cuadro',      defaultColor: '#6366f1', category: 'wall' },
+  painting: { label: 'Cuadro',      defaultColor: '#b08850', category: 'wall' },
   clock:    { label: 'Reloj',       defaultColor: '#f0ece4', category: 'wall' },
   calendar: { label: 'Calendario', defaultColor: '#e8e0d4', category: 'wall' },
   diplomas: { label: 'Diplomas y titulos', defaultColor: '#c4a26e', category: 'wall' },

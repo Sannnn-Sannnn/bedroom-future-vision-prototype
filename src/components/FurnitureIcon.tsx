@@ -118,7 +118,7 @@ function PaintingSVG({ w, h, color }: { w: number; h: number; color: string }) {
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       <rect x={2} y={2} width={w-4} height={h-4} rx={1} fill={D(color,40)} stroke={D(color,50)} strokeWidth={2}/>
-      <rect x={5} y={5} width={w-10} height={h-10} fill="#87ceeb"/>
+      <rect x={5} y={5} width={w-11} height={h-11} fill="#87ceeb"/>
       {/* Sun */}
       <circle cx={w*0.75} cy={h*0.28} r={w*0.1} fill="#fbbf24"/>
       {/* Mountains */}
@@ -205,11 +205,11 @@ function WindowSVG({ w, h, color }: { w: number; h: number; color: string }) {
 
 // Piano (horizontal view from top)
 function InstrumentsSVG({ w, h, color }: { w: number; h: number; color: string }) {
-  const keyW = w / 14;
+  const keyW = (w-10) / 14;
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       {/* Piano body */}
-      <rect x={2} y={2} width={w-4} height={h-4} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
+      <rect x={0} y={2} width={w} height={h-4} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
       {/* White keys */}
       {Array.from({length: 7}, (_, i) => (
         <rect key={i} x={6 + i * keyW * 2} y={h*0.35} width={keyW*1.8} height={h*0.55} rx={1} fill="#f5f5f4" stroke="#ccc" strokeWidth={0.5}/>
@@ -236,7 +236,7 @@ function ExerciseMatSVG({ w, h, color }: { w: number; h: number; color: string }
 function GymEquipmentSVG({ w, h, color }: { w: number; h: number; color: string }) {
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      <rect x={w*0.4} y={h*0.4} width={w*0.2} height={h*0.2} rx={1} fill={D(color,10)}/>
+      <rect x={0} y={h*0.45} width={w} height={h*0.1} rx={1} fill="#d4d4d4"/>
       <rect x={4} y={h*0.3} width={w*0.2} height={h*0.4} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
       <rect x={w-4-w*0.2} y={h*0.3} width={w*0.2} height={h*0.4} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
     </svg>
@@ -299,7 +299,7 @@ function PhotosSVG({ w, h, color }: { w: number; h: number; color: string }) {
       <rect x={6} y={6} width={w-12} height={h-12} fill={color}/>
       {/* Simple photo placeholder - person silhouette */}
       <circle cx={w/2} cy={h*0.38} r={w*0.15} fill={D(color,30)}/>
-      <ellipse cx={w/2} cy={h*0.72} rx={w*0.22} ry={h*0.18} fill={D(color,30)}/>
+      <ellipse cx={w/2} cy={h*0.7} rx={w*0.22} ry={h*0.18} fill={D(color,30)}/>
     </svg>
   );
 }
@@ -311,8 +311,8 @@ function ToolsSVG({ w, h, color }: { w: number; h: number; color: string }) {
       {/* Main box body */}
       <rect x={2} y={h*0.35} width={w-4} height={h*0.6} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
       {/* Handle */}
-      <rect x={w*0.35} y={h*0.15} width={w*0.3} height={h*0.25} rx={2} fill={D(color,20)} stroke={D(color,40)} strokeWidth={1}/>
-      <rect x={w*0.4} y={h*0.2} width={w*0.2} height={h*0.12} rx={1} fill={color}/>
+      <rect x={w*0.35} y={h*0.15} width={w*0.3} height={h*0.2} rx={2} fill={D("#d4d4d4",20)} stroke={D("#d4d4d4",40)} strokeWidth={1}/>
+      <rect x={w*0.4} y={h*0.2} width={w*0.2} height={h*0.12} rx={1} fill={"#d4d4d4"}/>
       {/* Latch */}
       <rect x={w*0.42} y={h*0.55} width={w*0.16} height={h*0.1} rx={1} fill={L(color,40)}/>
       {/* Line detail */}
@@ -387,7 +387,7 @@ function PuzzlesSVG({ w, h, color }: { w: number; h: number; color: string }) {
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       {/* Cube face */}
-      <rect x={2} y={2} width={w-4} height={h-4} rx={2} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
+      <rect x={2} y={2} width={w-6} height={h-6} rx={2} fill={"#1a1a1a"} stroke={D("#1a1a1a",30)} strokeWidth={1.5}/>
       {/* 3x3 grid */}
       {[0,1,2].map(row => [0,1,2].map(col => (
         <rect 
@@ -411,8 +411,7 @@ function SouvenirsSVG({ w, h, color }: { w: number; h: number; color: string }) 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       {/* Base */}
-      <ellipse cx={w/2} cy={h*0.88} rx={w*0.38} ry={h*0.1} fill="#6b5b4f"/>
-      <rect x={w*0.18} y={h*0.78} width={w*0.64} height={h*0.12} fill="#8b7355"/>
+      <ellipse cx={w/2} cy={h*0.75} rx={w*0.38} ry={h*0.1} fill="#6b5b4f"/>
       {/* Globe */}
       <circle cx={w/2} cy={h*0.42} r={w*0.38} fill={color} stroke={D(color,30)} strokeWidth={1.5} opacity={0.7}/>
       {/* Scene inside - simple tree */}
@@ -459,16 +458,16 @@ function TrophiesSVG({ w, h, color }: { w: number; h: number; color: string }) {
 // School folder with 2 rings
 function FoldersSVG({ w, h, color }: { w: number; h: number; color: string }) {
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
+      {/* Two rings */}
+      <circle cx={0} cy={h*0.3} r={4} fill="none" stroke="#707070" strokeWidth={2}/>
+      <circle cx={0} cy={h*0.7} r={4} fill="none" stroke="#707070" strokeWidth={2}/>
       {/* Back cover */}
       <rect x={5} y={4} width={w-7} height={h-6} rx={1} fill={D(color,15)} stroke={D(color,30)} strokeWidth={1}/>
       {/* Front cover */}
       <rect x={2} y={2} width={w-6} height={h-4} rx={1} fill={color} stroke={D(color,30)} strokeWidth={1.5}/>
       {/* Ring mechanism area */}
-      <rect x={3} y={h*0.25} width={6} height={h*0.5} fill={D(color,25)}/>
-      {/* Two rings */}
-      <circle cx={6} cy={h*0.38} r={4} fill="none" stroke="#a0a0a0" strokeWidth={2}/>
-      <circle cx={6} cy={h*0.62} r={4} fill="none" stroke="#a0a0a0" strokeWidth={2}/>
+      <rect x={3} y={h*0.15} width={6} height={h*0.7} fill={D(color,25)}/>
       {/* Label area */}
       <rect x={12} y={h*0.3} width={w-18} height={h*0.4} rx={1} fill={L(color,40)} opacity={0.5}/>
     </svg>
