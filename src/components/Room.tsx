@@ -314,7 +314,7 @@ export default function Room({
             <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-black/[0.04] to-transparent pointer-events-none" />
           </div>
 
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet" style={{ zIndex: 15 }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet" style={{ zIndex: 10 }}>
             <rect x={.5} y={.5} width={OUTER_W-1} height={OUTER_H-1} fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth={1.5} />
             <rect x={FLOOR_X} y={FLOOR_Y} width={FLOOR_W} height={FLOOR_H} fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth={1} />
             <line x1={OTL.x} y1={OTL.y} x2={FTL.x} y2={FTL.y} stroke="rgba(0,0,0,0.12)" strokeWidth={1} />
