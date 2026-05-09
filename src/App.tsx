@@ -81,6 +81,16 @@ export default function App() {
     setElementPopupOpen(false);
   }, [state, persist]);
 
+  const toggleInventory = useCallback((forceState?: boolean) => {
+    setInventoryOpen(prev => forceState !== undefined ? forceState : !prev);
+  }, []);
+
+  const handleQuickDrop = useCallback((type: FurnitureType) => {
+    // Coordenadas centrales aproximadas del lienzo (FLOOR_W/2, FLOOR_H/2)
+    handleDrop(type, 140, 190); 
+    setInventoryOpen(false); // Cerramos el panel para que el usuario vea el mueble
+  }, [handleDrop]);
+
   // Handle pencil button - opens element options if selected, room options otherwise
   const handlePencilPress = useCallback(() => {
     if (selectedId) {
@@ -163,7 +173,8 @@ export default function App() {
       {/* Bottom Inventory Panel */}
       <InventoryPanel 
         isOpen={inventoryOpen}
-        onToggle={() => setInventoryOpen(!inventoryOpen)}
+        onToggle={toggleInventory}
+        onQuickDrop={handleQuickDrop} // Nueva prop
       />
 
       {/* Room Options Panel (slide from right) */}

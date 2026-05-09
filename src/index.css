@@ -80,3 +80,24 @@ input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+html, body {
+  /* Bloquea el rebote y la actualización por arrastre (pull-to-refresh) */
+  overscroll-behavior: none;
+  
+  /* Evita que el cuerpo de la página se mueva */
+  overflow: hidden;
+  
+  /* Elimina el resaltado azul al tocar en móviles */
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Mejora el manejo de gestos */
+  touch-action: none; 
+}
+
+/* Si tienes un contenedor principal para la App */
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}

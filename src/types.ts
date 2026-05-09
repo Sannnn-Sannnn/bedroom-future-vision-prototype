@@ -126,7 +126,7 @@ export const FURNITURE_SIZES: Record<FurnitureType, { w: number; h: number }[]> 
   // Muebles
   bed:      [{ w: 70, h: 110 }],
   wardrobe: [{ w: 65, h: 45 }],
-  desk:     [{ w: 170, h: 110 }],  // Doubled size
+  desk:     [{ w: 110, h: 60 }],  // Doubled size
   chair:    [{ w: 45, h: 45 }],
   plant:    [{ w: 60, h: 60 }],
   tv:       [{ w: 80, h: 50 }],
