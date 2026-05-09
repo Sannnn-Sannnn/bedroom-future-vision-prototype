@@ -118,7 +118,7 @@ export default function App() {
               : 'bg-green-500 text-white hover:bg-green-600 active:scale-95'
           }`}
         >
-          Listo!
+          ¡Listo!
         </button>
 
         <div className="flex items-center gap-3">
@@ -274,14 +274,15 @@ export default function App() {
             </div>
             <div className="space-y-3 text-sm text-gray-600 leading-relaxed">
               <p>Abre el panel de abajo para ver los elementos disponibles</p>
-              <p>Arrastra un elemento desde el panel y sueltalo en la habitacion para colocarlo</p>
+              <p>Arrastra un elemento desde el panel y sueltalo en la habitación para colocarlo</p>
               <p>Toca un elemento en la habitacion para seleccionarlo</p>
-              <p>Usa el boton del lapiz para personalizar el elemento seleccionado</p>
-              <p>Sin elemento seleccionado, el boton del lapiz abre las opciones de la habitacion</p>
+              <p>Usa el boton del lápiz para personalizar el elemento seleccionado</p>
+              <p>Sin elemento seleccionado, el boton del lápiz abre las opciones de la habitación</p>
               <p>Arrastra los elementos para moverlos entre zonas</p>
             </div>
             
             {/* Debug Panel Toggle */}
+            {/*
             <div className="mt-5 pt-4 border-t border-gray-200">
               <button
                 onClick={() => setDebugOpen(!debugOpen)}
@@ -318,6 +319,7 @@ export default function App() {
                 </div>
               )}
             </div>
+            */}
             
             <button
               onClick={() => { setHelpOpen(false); setDebugOpen(false); }}
