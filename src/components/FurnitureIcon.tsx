@@ -3,7 +3,6 @@ import { FurnitureType, FURNITURE_SIZES } from '../types';
 interface Props {
   type: FurnitureType;
   color: string;
-  shape: number;
   shadow?: boolean;
   preview?: boolean;
 }
@@ -612,8 +611,8 @@ function AgendaSVG({ w, h, color }: { w: number; h: number; color: string }) {
   );
 }
 
-export default function FurnitureIcon({ type, color, shape, shadow = false, preview = false }: Props) {
-  const idx = Math.min(shape, FURNITURE_SIZES[type].length - 1);
+export default function FurnitureIcon({ type, color, shadow = false, preview = false }: Props) {
+  const idx = Math.min(0, FURNITURE_SIZES[type].length - 1);
   const sz = FURNITURE_SIZES[type][idx];
   const scale = preview ? 0.45 : 1;
   const w = sz.w * scale, h = sz.h * scale;
