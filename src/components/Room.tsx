@@ -173,8 +173,14 @@ export default function Room({
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    const clientPos = 'touches' in e ? e.touches[0] : e;
     if (!draggingId) return;
+    
+    // Prevent default to stop scrolling and other touch behaviors while dragging
+    if ('touches' in e) {
+      e.preventDefault();
+    }
+    
+    const clientPos = 'touches' in e ? e.touches[0] : e;
     const op = outerPos(clientPos);
     const zone = hitZone(op.x, op.y);
     const wallVal = zone === 'floor' ? undefined : zone as WallId;
@@ -185,9 +191,23 @@ export default function Room({
   const handleMouseUp = useCallback(() => {
     setDraggingId(null);
   }, []);
+  
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Only end drag if we were actually dragging
+    if (draggingId) {
+      e.preventDefault();
+      setDraggingId(null);
+    }
+  }, [draggingId]);
 
   const itemDown = useCallback((e: React.MouseEvent | React.TouchEvent, item: FurnitureInstance) => {
     e.stopPropagation();
+    
+    // Prevent default touch behavior to avoid accidental drops
+    if ('touches' in e) {
+      e.preventDefault();
+    }
+    
     const clientPos = 'touches' in e ? e.touches[0] : e;
     onSelect(item.id);
 
@@ -234,11 +254,11 @@ export default function Room({
             left: item.x + offX, top: item.y + offY,
             transform: `rotate(${rot}deg) scale(${item.scale})`,
             transformOrigin: 'center center',
+            touchAction: 'none',
           }}
           onMouseDown={e => itemDown(e, item)}
           onMouseUp={handleMouseUp}
           onTouchStart={e => itemDown(e, item)}
-          onTouchEnd={handleMouseUp}
         >
           {sel && <div className="absolute -inset-2 border-2 border-blue-500 rounded-sm bg-blue-100/15 pointer-events-none" style={{ animation: 'selPulse 1.5s ease-in-out infinite' }} />}
           <div className="absolute -inset-1 border border-transparent group-hover:border-blue-400/30 rounded-sm pointer-events-none transition-colors" />
@@ -277,13 +297,15 @@ export default function Room({
             maxWidth: OUTER_W, 
             aspectRatio: `${OUTER_W}/${OUTER_H}`,
             position: 'relative', 
-            cursor: draggingId ? 'grabbing' : 'default' 
+            cursor: draggingId ? 'grabbing' : 'default',
+            touchAction: draggingId ? 'none' : 'auto'
           }}
           onMouseMove={handleMouseMove} 
           onMouseUp={handleMouseUp} 
           onMouseLeave={handleMouseUp}
           onTouchMove={handleMouseMove}
-          onTouchEnd={handleMouseUp}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onDragOver={handleDragOver} 
           onDragLeave={handleDragLeave} 
           onDrop={handleContainerDrop}
