@@ -1,0 +1,7 @@
+*.zip
+*.rar
+*.7z
+
+*.idea
+*.vs
+.env
