@@ -45,7 +45,7 @@ export default function InventoryPanel({ isOpen, onToggle }: Props) {
       {/* Collapsed Header / Toggle */}
       <button
         onClick={onToggle}
-        className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        className="fixed bottom-0 left-0 w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
       >
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-700">Inventario</span>
