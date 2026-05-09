@@ -5,15 +5,14 @@ import {
 } from '../types';
 import FurnitureIcon from './FurnitureIcon';
 
-/* ── Layout ── */
-const FLOOR_W = 440;
-const FLOOR_H = 300;
-const MARGIN = 140; // increased wall height
-const RATIO = FLOOR_W / FLOOR_H;
+/* ── Layout - VERTICAL orientation ── */
+const FLOOR_W = 280;
+const FLOOR_H = 380;
+const MARGIN = 100;
 const OUTER_W = FLOOR_W + MARGIN * 2;
-const OUTER_H = OUTER_W / RATIO;
+const OUTER_H = FLOOR_H + MARGIN * 2;
 const FLOOR_X = MARGIN;
-const FLOOR_Y = (OUTER_H - FLOOR_H) / 2;
+const FLOOR_Y = MARGIN;
 
 interface Props {
   furniture: FurnitureInstance[];
@@ -26,6 +25,9 @@ interface Props {
   floorColor: string;
   wallStyle: WallStyle;
   wallColor: string;
+  onElementLongPress: (id: string) => void;
+  placingItem: FurnitureType | null;
+  onCancelPlacing: () => void;
 }
 
 const dk = (hex: string, a: number) => {
@@ -38,7 +40,7 @@ const dk = (hex: string, a: number) => {
 function floorBg(style: FloorStyle, c: string): string {
   switch (style) {
     case 'wood':
-      return `repeating-linear-gradient(90deg,${c} 0px,${c} 54px,${dk(c,20)} 54px,${dk(c,20)} 56px),repeating-linear-gradient(0deg,transparent 0 180px,${dk(c,12)} 180px 182px),${c}`;
+      return `repeating-linear-gradient(0deg,${c} 0px,${c} 54px,${dk(c,20)} 54px,${dk(c,20)} 56px),repeating-linear-gradient(90deg,transparent 0 180px,${dk(c,12)} 180px 182px),${c}`;
     case 'tile':
       return `repeating-linear-gradient(0deg,transparent 0 38px,${dk(c,28)} 38px 39px),repeating-linear-gradient(90deg,transparent 0 38px,${dk(c,28)} 38px 39px),${c}`;
     case 'carpet':
@@ -55,14 +57,12 @@ function WallPatterns({ wallColor: c }: { wallStyle: WallStyle; wallColor: strin
 
   return (
     <defs>
-      {/* BRICK — back/front: horizontal bricks */}
       <pattern id="pat-brick" patternUnits="userSpaceOnUse" width={pW} height={pH}>
         <rect width={pW} height={pH} fill={mortar}/>
         <rect x={0} y={0} width={bW} height={bH} rx={.5} fill={c}/>
         <rect x={-pW/2} y={bH+gap} width={bW} height={bH} rx={.5} fill={dk(c,6)}/>
         <rect x={pW/2} y={bH+gap} width={bW} height={bH} rx={.5} fill={dk(c,6)}/>
       </pattern>
-      {/* BRICK — left/right: rotated 90° (vertical bricks) */}
       <pattern id="pat-brick-side" patternUnits="userSpaceOnUse" width={pH} height={pW}>
         <rect width={pH} height={pW} fill={mortar}/>
         <rect x={0} y={0} width={bH} height={bW} rx={.5} fill={dk(c,10)}/>
@@ -76,13 +76,11 @@ function WallPatterns({ wallColor: c }: { wallStyle: WallStyle; wallColor: strin
         <rect x={pW/2} y={bH+gap} width={bW} height={bH} rx={.5} fill={dk(c,16)}/>
       </pattern>
 
-      {/* WOOD — back/front: horizontal planks */}
       <pattern id="pat-wood" patternUnits="userSpaceOnUse" width={200} height={14}>
         <rect width={200} height={14} fill={c}/>
         <rect x={0} y={12} width={200} height={2} fill={dk(c,16)}/>
         <rect x={0} y={0} width={200} height={1} fill={dk(c,6)} opacity={.3}/>
       </pattern>
-      {/* WOOD — left/right: vertical planks (rotated 90°) */}
       <pattern id="pat-wood-side" patternUnits="userSpaceOnUse" width={14} height={200}>
         <rect width={14} height={200} fill={dk(c,10)}/>
         <rect x={12} y={0} width={2} height={200} fill={dk(c,24)}/>
@@ -93,13 +91,11 @@ function WallPatterns({ wallColor: c }: { wallStyle: WallStyle; wallColor: strin
         <rect x={0} y={12} width={200} height={2} fill={dk(c,22)}/>
       </pattern>
 
-      {/* WALLPAPER — back/front: diamond lattice */}
       <pattern id="pat-wp" patternUnits="userSpaceOnUse" width={20} height={20}>
         <rect width={20} height={20} fill={c}/>
         <path d="M0,10 L10,0 L20,10 L10,20 Z" fill="none" stroke={dk(c,12)} strokeWidth={.8}/>
         <circle cx={10} cy={10} r={1.5} fill={dk(c,15)} opacity={.5}/>
       </pattern>
-      {/* WALLPAPER — left/right: rotated 90° */}
       <pattern id="pat-wp-side" patternUnits="userSpaceOnUse" width={20} height={20} patternTransform="rotate(90)">
         <rect width={20} height={20} fill={dk(c,8)}/>
         <path d="M0,10 L10,0 L20,10 L10,20 Z" fill="none" stroke={dk(c,18)} strokeWidth={.8}/>
@@ -154,45 +150,66 @@ function toLocal(ox: number, oy: number, zone: WallId | 'floor') {
   return { x: ox - FLOOR_X - FLOOR_W, y: oy };
 }
 
-/* auto-rotation: wall items rotate so they face outward from the wall */
 function autoRot(wall?: WallId): number {
   if (wall === 'right') return 90;
   if (wall === 'front') return 180;
   if (wall === 'left') return 270;
-  return 0; // back
+  return 0;
 }
 
 export default function Room({
   furniture, selectedId, onSelect, onMoveTo,
-  roomDescription, floorStyle, floorColor, wallStyle, wallColor, onDrop,
+  floorStyle, floorColor, wallStyle, wallColor, onDrop,
+  onElementLongPress, placingItem, onCancelPlacing,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
   const [dragOverZone, setDragOverZone] = useState<string | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [pressedItemId, setPressedItemId] = useState<string | null>(null);
 
   const outerPos = useCallback((e: { clientX: number; clientY: number }) => {
     if (!containerRef.current) return { x: 0, y: 0 };
     const r = containerRef.current.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
+    const scaleX = OUTER_W / r.width;
+    const scaleY = OUTER_H / r.height;
+    return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleY };
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    const clientPos = 'touches' in e ? e.touches[0] : e;
     if (!draggingId) return;
-    const op = outerPos(e);
+    const op = outerPos(clientPos);
     const zone = hitZone(op.x, op.y);
     const wallVal = zone === 'floor' ? undefined : zone as WallId;
     const local = toLocal(op.x - dragOffsetRef.current.x, op.y - dragOffsetRef.current.y, zone);
     onMoveTo(draggingId, wallVal, local.x, local.y);
   }, [draggingId, outerPos, onMoveTo]);
 
-  const handleMouseUp = useCallback(() => setDraggingId(null), []);
+  const handleMouseUp = useCallback(() => {
+    setDraggingId(null);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    setPressedItemId(null);
+  }, []);
 
-  const itemDown = useCallback((e: React.MouseEvent, item: FurnitureInstance) => {
-    e.stopPropagation(); 
+  const itemDown = useCallback((e: React.MouseEvent | React.TouchEvent, item: FurnitureInstance) => {
+    e.stopPropagation();
+    const clientPos = 'touches' in e ? e.touches[0] : e;
     onSelect(item.id);
+    setPressedItemId(item.id);
+    
+    // Start long press timer
+    longPressTimerRef.current = setTimeout(() => {
+      onElementLongPress(item.id);
+      setPressedItemId(null);
+    }, 1000);
+
     setDraggingId(item.id);
-    const op = outerPos(e);
+    const op = outerPos(clientPos);
     const zone = item.wall || 'floor';
     let ix = item.x, iy = item.y;
     if (zone === 'floor') { ix += FLOOR_X; iy += FLOOR_Y; }
@@ -200,7 +217,7 @@ export default function Room({
     else if (zone === 'front') { ix += FLOOR_X; iy += FLOOR_Y + FLOOR_H; }
     else if (zone === 'right') { ix += FLOOR_X + FLOOR_W; }
     dragOffsetRef.current = { x: op.x - ix, y: op.y - iy };
-  }, [onSelect, outerPos]);
+  }, [onSelect, outerPos, onElementLongPress]);
 
   const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); const p = outerPos(e); setDragOverZone(hitZone(p.x, p.y) as string); };
   const handleDragLeave = () => setDragOverZone(null);
@@ -217,16 +234,31 @@ export default function Room({
     onDrop(t, local.x, local.y, wm ? finalWall : undefined);
   };
 
-  /* ── Deselect: a transparent overlay behind items catches mousedown ── */
+  // Handle tap to place item when in placing mode
+  const handleContainerClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (!placingItem) {
+      onSelect(null);
+      return;
+    }
+    const clientPos = 'touches' in e ? e.touches[0] : e;
+    const op = outerPos(clientPos);
+    const zone = hitZone(op.x, op.y);
+    const wm = isWallMounted(placingItem);
+    const finalWall = zone !== 'floor' ? (zone as WallId) : (wm ? 'back' as WallId : undefined);
+    const sz = FURNITURE_SIZES[placingItem][0];
+    const local = toLocal(op.x - sz.w / 2, op.y - sz.h / 2, finalWall || 'floor');
+    onDrop(placingItem, local.x, local.y, wm ? finalWall : undefined);
+  }, [placingItem, outerPos, onDrop, onSelect]);
+
   const handleBgMouseDown = useCallback(() => {
     onSelect(null);
   }, [onSelect]);
 
-  /* ── render items with auto-rotation for wall items ── */
   const renderItems = (items: FurnitureInstance[], offX: number, offY: number) =>
     items.map(item => {
       const sel = selectedId === item.id;
       const drg = draggingId === item.id;
+      const pressed = pressedItemId === item.id;
       const wm = isWallMounted(item.type);
       const rot = wm ? autoRot(item.wall) + (item.rotation || 0) : (item.rotation || 0);
       return (
@@ -238,8 +270,12 @@ export default function Room({
             transformOrigin: 'center center',
           }}
           onMouseDown={e => itemDown(e, item)}
+          onMouseUp={handleMouseUp}
+          onTouchStart={e => itemDown(e, item)}
+          onTouchEnd={handleMouseUp}
         >
           {sel && <div className="absolute -inset-2 border-2 border-blue-500 rounded-sm bg-blue-100/15 pointer-events-none" style={{ animation: 'selPulse 1.5s ease-in-out infinite' }} />}
+          {pressed && <div className="absolute -inset-2 border-2 border-blue-400 rounded-sm bg-blue-200/30 pointer-events-none animate-pulse" />}
           <div className="absolute -inset-1 border border-transparent group-hover:border-blue-400/30 rounded-sm pointer-events-none transition-colors" />
           <FurnitureIcon type={item.type} color={item.color} shape={item.shape} shadow={!drg} />
           {item.description && !drg && (
@@ -269,22 +305,26 @@ export default function Room({
 
   return (
     <div className="flex-1 flex flex-col bg-gray-100 overflow-hidden">
-      <div className="px-4 py-1.5 bg-white border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">🏠</span>
-          <span className="text-xs font-medium text-gray-600">Mi Habitación</span>
-          {roomDescription && <span className="text-[10px] text-gray-400 ml-1 max-w-[180px] truncate">— {roomDescription}</span>}
-        </div>
-        <div className="text-[10px] text-gray-400">{furniture.length} elemento{furniture.length !== 1 ? 's' : ''}</div>
-      </div>
-
       <div className="flex-1 flex items-center justify-center p-2 overflow-auto">
         <div ref={containerRef}
-          style={{ width: OUTER_W, height: OUTER_H, position: 'relative', cursor: draggingId ? 'grabbing' : 'default' }}
-          onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
-          onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleContainerDrop}
+          style={{ 
+            width: '100%', 
+            maxWidth: OUTER_W, 
+            aspectRatio: `${OUTER_W}/${OUTER_H}`,
+            position: 'relative', 
+            cursor: placingItem ? 'crosshair' : draggingId ? 'grabbing' : 'default' 
+          }}
+          onMouseMove={handleMouseMove} 
+          onMouseUp={handleMouseUp} 
+          onMouseLeave={handleMouseUp}
+          onTouchMove={handleMouseMove}
+          onTouchEnd={handleMouseUp}
+          onDragOver={handleDragOver} 
+          onDragLeave={handleDragLeave} 
+          onDrop={handleContainerDrop}
+          onClick={handleContainerClick}
         >
-          <svg className="absolute inset-0" width={OUTER_W} height={OUTER_H} style={{ zIndex: 0 }}>
+          <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet" style={{ zIndex: 0 }}>
             <WallPatterns wallStyle={wallStyle} wallColor={wallColor} />
             <polygon points={poly(OTL, OTR, FTR, FTL)} fill={wallFill(wallStyle, 'back', wallColor)} {...hl(hlBack)} />
             <polygon points={poly(OTL, FTL, FBL, OBL)} fill={wallFill(wallStyle, 'left', wallColor)} {...hl(hlLeft)} />
@@ -293,14 +333,25 @@ export default function Room({
             <rect x={FLOOR_X} y={FLOOR_Y} width={FLOOR_W} height={FLOOR_H} fill="white" {...hl(hlFloor)} />
           </svg>
 
-          <div data-bg="true" className="absolute" style={{ left: FLOOR_X, top: FLOOR_Y, width: FLOOR_W, height: FLOOR_H, background: fBgCss, zIndex: 1 }}>
+          <div 
+            data-bg="true" 
+            className="absolute" 
+            style={{ 
+              left: `${(FLOOR_X / OUTER_W) * 100}%`, 
+              top: `${(FLOOR_Y / OUTER_H) * 100}%`, 
+              width: `${(FLOOR_W / OUTER_W) * 100}%`, 
+              height: `${(FLOOR_H / OUTER_H) * 100}%`, 
+              background: fBgCss, 
+              zIndex: 1 
+            }}
+          >
             <div className="absolute top-0 left-0 right-0 h-5 bg-gradient-to-b from-black/[0.06] to-transparent pointer-events-none" />
             <div className="absolute top-0 left-0 bottom-0 w-5 bg-gradient-to-r from-black/[0.04] to-transparent pointer-events-none" />
             <div className="absolute top-0 right-0 bottom-0 w-5 bg-gradient-to-l from-black/[0.04] to-transparent pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-black/[0.04] to-transparent pointer-events-none" />
           </div>
 
-          <svg className="absolute inset-0 pointer-events-none" width={OUTER_W} height={OUTER_H} style={{ zIndex: 52 }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet" style={{ zIndex: 52 }}>
             <rect x={.5} y={.5} width={OUTER_W-1} height={OUTER_H-1} fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth={1.5} />
             <rect x={FLOOR_X} y={FLOOR_Y} width={FLOOR_W} height={FLOOR_H} fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth={1} />
             <line x1={OTL.x} y1={OTL.y} x2={FTL.x} y2={FTL.y} stroke="rgba(0,0,0,0.12)" strokeWidth={1} />
@@ -309,26 +360,47 @@ export default function Room({
             <line x1={OBR.x} y1={OBR.y} x2={FBR.x} y2={FBR.y} stroke="rgba(0,0,0,0.10)" strokeWidth={1} />
           </svg>
 
-          {floorItems.length === 0 && !dragOverZone && (
-            <div className="absolute pointer-events-none opacity-[0.18]" style={{ left: FLOOR_X, top: FLOOR_Y, width: FLOOR_W, height: FLOOR_H, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {floorItems.length === 0 && !dragOverZone && !placingItem && (
+            <div className="absolute pointer-events-none opacity-[0.18]" style={{ left: `${(FLOOR_X / OUTER_W) * 100}%`, top: `${(FLOOR_Y / OUTER_H) * 100}%`, width: `${(FLOOR_W / OUTER_W) * 100}%`, height: `${(FLOOR_H / OUTER_H) * 100}%`, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div className="text-center"><p className="text-xl mb-0.5">🏡</p><p className="text-[9px] text-gray-500 font-medium">Arrastra muebles aquí</p></div>
             </div>
           )}
-          {backItems.length === 0 && !dragOverZone && <div className="absolute pointer-events-none opacity-[0.12]" style={{ left: FLOOR_X, top: 10, width: FLOOR_W, zIndex: 2, textAlign: 'center' }}><span className="text-[9px] text-gray-600 font-medium tracking-widest">PARED TRASERA</span></div>}
-          {frontItems.length === 0 && !dragOverZone && <div className="absolute pointer-events-none opacity-[0.12]" style={{ left: FLOOR_X, bottom: 10, width: FLOOR_W, zIndex: 2, textAlign: 'center' }}><span className="text-[9px] text-gray-600 font-medium tracking-widest">PARED FRONTAL</span></div>}
-          {leftItems.length === 0 && !dragOverZone && <div className="absolute pointer-events-none opacity-[0.12] flex items-center justify-center" style={{ left: 8, top: FLOOR_Y, width: MARGIN - 16, height: FLOOR_H, zIndex: 2 }}><span className="text-[9px] text-gray-600 font-medium" style={{ writingMode: 'vertical-rl' }}>IZQUIERDA</span></div>}
-          {rightItems.length === 0 && !dragOverZone && <div className="absolute pointer-events-none opacity-[0.12] flex items-center justify-center" style={{ right: 8, top: FLOOR_Y, width: MARGIN - 16, height: FLOOR_H, zIndex: 2 }}><span className="text-[9px] text-gray-600 font-medium" style={{ writingMode: 'vertical-rl' }}>DERECHA</span></div>}
 
-          {/* Deselect overlay: catches mousedown on any background area */}
+          {/* Placing item indicator */}
+          {placingItem && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[100]">
+              <div className="bg-blue-500/90 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                Toca donde quieras colocar {FURNITURE_CATALOG[placingItem].label.toLowerCase()}
+              </div>
+            </div>
+          )}
+
+          {/* Cancel placing button */}
+          {placingItem && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onCancelPlacing(); }}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-800/90 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg z-[101] hover:bg-gray-700 active:scale-95 transition-all"
+            >
+              Cancelar
+            </button>
+          )}
+
+          {/* Deselect overlay */}
           <div className="absolute inset-0" style={{ zIndex: 5 }} onMouseDown={handleBgMouseDown} />
 
-          {/* Furniture items (zIndex 10, above overlay) */}
+          {/* Furniture items */}
           <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
-            {renderItems(floorItems, FLOOR_X, FLOOR_Y)}
-            {renderItems(backItems, FLOOR_X, 0)}
-            {renderItems(frontItems, FLOOR_X, FLOOR_Y + FLOOR_H)}
-            {renderItems(leftItems, 0, 0)}
-            {renderItems(rightItems, FLOOR_X + FLOOR_W, 0)}
+            <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${OUTER_W} ${OUTER_H}`} preserveAspectRatio="xMidYMid meet">
+              <foreignObject x="0" y="0" width={OUTER_W} height={OUTER_H}>
+                <div style={{ width: OUTER_W, height: OUTER_H, position: 'relative' }}>
+                  {renderItems(floorItems, FLOOR_X, FLOOR_Y)}
+                  {renderItems(backItems, FLOOR_X, 0)}
+                  {renderItems(frontItems, FLOOR_X, FLOOR_Y + FLOOR_H)}
+                  {renderItems(leftItems, 0, 0)}
+                  {renderItems(rightItems, FLOOR_X + FLOOR_W, 0)}
+                </div>
+              </foreignObject>
+            </svg>
           </div>
         </div>
       </div>

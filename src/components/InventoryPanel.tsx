@@ -1,61 +1,104 @@
+import { useState, useRef, useCallback } from 'react';
 import { FURNITURE_CATALOG, FurnitureType } from '../types';
 import FurnitureIcon from './FurnitureIcon';
+import { ChevronUp } from 'lucide-react';
 
 interface Props {
-  onDragStart: (type: FurnitureType) => void;
+  isOpen: boolean;
+  onToggle: () => void;
+  onItemLongPress: (type: FurnitureType) => void;
 }
 
-export default function InventoryPanel({ onDragStart }: Props) {
+export default function InventoryPanel({ isOpen, onToggle, onItemLongPress }: Props) {
   const all = Object.entries(FURNITURE_CATALOG) as [FurnitureType, (typeof FURNITURE_CATALOG)[FurnitureType]][];
   const floorItems = all.filter(([, v]) => v.category === 'floor');
   const wallItems = all.filter(([, v]) => v.category === 'wall');
 
+  const [pressedItem, setPressedItem] = useState<FurnitureType | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTouchStart = useCallback((type: FurnitureType) => {
+    setPressedItem(type);
+    longPressTimerRef.current = setTimeout(() => {
+      onItemLongPress(type);
+      setPressedItem(null);
+    }, 1000);
+  }, [onItemLongPress]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    setPressedItem(null);
+  }, []);
+
   const renderItem = ([type, info]: [FurnitureType, (typeof FURNITURE_CATALOG)[FurnitureType]]) => (
-    <div key={type} draggable
-      onDragStart={(e) => { e.dataTransfer.setData('furnitureType', type); onDragStart(type); }}
-      className="group bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded p-2 cursor-grab active:cursor-grabbing transition-all duration-100"
+    <div
+      key={type}
+      onTouchStart={() => handleTouchStart(type)}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      onMouseDown={() => handleTouchStart(type)}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchEnd}
+      className={`bg-white border rounded-lg p-3 cursor-pointer transition-all duration-200 ${
+        pressedItem === type 
+          ? 'border-blue-500 bg-blue-50 scale-95' 
+          : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:scale-95'
+      }`}
     >
-      <div className="flex items-center gap-2.5">
-        <div className="w-11 h-11 bg-gray-50 border border-gray-100 rounded flex items-center justify-center flex-shrink-0 group-hover:bg-white overflow-hidden">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
           <FurnitureIcon type={type} color={info.defaultColor} shape={0} preview />
         </div>
-        <div className="min-w-0">
-          <span className="text-xs font-medium text-gray-700">{info.label}</span>
-          <p className="text-[9px] text-gray-400 leading-tight">Arrastra</p>
-        </div>
+        <span className="text-xs font-medium text-gray-700 text-center">{info.label}</span>
       </div>
+      {pressedItem === type && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 
   return (
-    <div className="w-52 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <h2 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-          📦 Inventario
-        </h2>
-        <p className="text-[10px] text-gray-400 mt-0.5">Arrastra elementos a la habitación</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {/* Floor category */}
-        <div className="flex items-center gap-1.5 px-1 pt-1 pb-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Muebles</span>
+    <div className="flex-shrink-0 bg-white border-t border-gray-200 z-40">
+      {/* Collapsed Header / Toggle */}
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-700">Inventario</span>
+          <span className="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">
+            {all.length} elementos
+          </span>
         </div>
-        {floorItems.map(renderItem)}
+        <ChevronUp className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
 
-        {/* Wall category */}
-        <div className="flex items-center gap-1.5 px-1 pt-3 pb-1 border-t border-gray-100 mt-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pared</span>
+      {/* Expandable Content */}
+      <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[50vh]' : 'max-h-0'}`}>
+        <div className="p-3 overflow-y-auto max-h-[calc(50vh-52px)]">
+          {/* Floor category */}
+          <div className="flex items-center gap-1.5 px-1 mb-2">
+            <div className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Muebles</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {floorItems.map(renderItem)}
+          </div>
+
+          {/* Wall category */}
+          <div className="flex items-center gap-1.5 px-1 mb-2 pt-2 border-t border-gray-100">
+            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pared</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {wallItems.map(renderItem)}
+          </div>
         </div>
-        {wallItems.map(renderItem)}
-      </div>
-
-      <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
-        <p className="text-[9px] text-gray-400 text-center leading-tight">
-          Los elementos de pared rotan automáticamente
-        </p>
       </div>
     </div>
   );
