@@ -170,7 +170,7 @@ export default function App() {
       {roomOptionsOpen && (
         <div className="fixed inset-0 z-50">
           <div 
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-red/40"
             onClick={() => setRoomOptionsOpen(false)}
           />
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl flex flex-col animate-slide-in-right">
