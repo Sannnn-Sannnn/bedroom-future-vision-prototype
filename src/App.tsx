@@ -43,6 +43,11 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [listoPressed, setListoPressed] = useState(false);
+  const [namePromptOpen, setNamePromptOpen] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const persist = useCallback((s: RoomState) => { setState(s); saveState(s); }, []);
 
@@ -108,7 +113,48 @@ export default function App() {
   const handleListoPress = () => {
     setListoPressed(true);
     setTimeout(() => setListoPressed(false), 150);
-    setResultsOpen(true);
+    setNamePromptOpen(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
+  const handleSaveResult = async () => {
+    if (!userName.trim()) {
+      setSaveError('Por favor ingresa tu nombre completo');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const response = await fetch('/api/save-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: userName,
+          dimensionVector: dimensionVector,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al guardar');
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => {
+        setNamePromptOpen(false);
+        setResultsOpen(true);
+        setUserName('');
+        setSaveSuccess(false);
+      }, 1500);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Error al guardar el resultado');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const sel = state.furniture.find(f => f.id === selectedId) || null;
@@ -303,6 +349,81 @@ export default function App() {
                 Reiniciar diseño
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Name Prompt Modal */}
+      {namePromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => !isSaving && setNamePromptOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 animate-scale-in">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">Guardar Resultado</h2>
+              {!isSaving && (
+                <button onClick={() => setNamePromptOpen(false)} className="p-1.5 hover:bg-gray-200 rounded-full transition-colors">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              )}
+            </div>
+            
+            {saveSuccess ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-gray-700 font-medium">Resultado guardado correctamente</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600 mb-4">
+                  Ingresa tu nombre completo para guardar tu resultado. Si ya tienes un resultado guardado, se actualizará.
+                </p>
+                
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Nombre completo"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  disabled={isSaving}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveResult()}
+                />
+                
+                {saveError && (
+                  <p className="mt-2 text-sm text-red-500">{saveError}</p>
+                )}
+                
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setNamePromptOpen(false)}
+                    disabled={isSaving}
+                    className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors active:scale-[0.98] disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSaveResult}
+                    disabled={isSaving || !userName.trim()}
+                    className="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSaving ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Guardando...
+                      </>
+                    ) : (
+                      'Guardar'
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
