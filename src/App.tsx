@@ -128,26 +128,21 @@ export default function App() {
     setSaveError(null);
 
     try {
-      const payload = {
-        fullName: userName,
-        dimensionVector: dimensionVector,
-      };
-      console.log('[v0] Sending payload:', JSON.stringify(payload));
-      
       const response = await fetch('/api/save-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          fullName: userName,
+          dimensionVector: dimensionVector,
+        }),
       });
 
-      console.log('[v0] Response status:', response.status);
       const text = await response.text();
-      console.log('[v0] Response text:', text);
       const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
-        console.log('[v0] Error response:', data);
-        throw new Error(data.error || 'Error al guardar');
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Error al guardar');
+        throw new Error(errorMsg);
       }
 
       setSaveSuccess(true);
