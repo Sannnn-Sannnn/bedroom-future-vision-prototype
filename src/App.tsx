@@ -137,10 +137,12 @@ export default function App() {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
         throw new Error(data.error || 'Error al guardar');
+        console.log(response);
       }
 
       setSaveSuccess(true);
