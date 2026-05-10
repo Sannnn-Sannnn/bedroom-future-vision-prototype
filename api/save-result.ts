@@ -32,14 +32,12 @@ export default async function handler(request: Request) {
     const sql = neon(process.env.DATABASE_URL!);
     const normalizedName = fullName.trim().toLowerCase();
 
-    // Upsert: insert or update if exists
+    // Upsert: insert or update if exists (no timestamps)
     await sql`
-      INSERT INTO room_results (full_name, dimension_vector, updated_at)
-      VALUES (${normalizedName}, ${dimensionVector}, NOW())
+      INSERT INTO room_results (full_name, dimension_vector)
+      VALUES (${normalizedName}, ${dimensionVector})
       ON CONFLICT (full_name) 
-      DO UPDATE SET 
-        dimension_vector = EXCLUDED.dimension_vector,
-        updated_at = NOW()
+      DO UPDATE SET dimension_vector = EXCLUDED.dimension_vector
     `;
 
     return new Response(JSON.stringify({ 
