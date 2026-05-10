@@ -113,9 +113,10 @@ export default function App() {
   const handleListoPress = () => {
     setListoPressed(true);
     setTimeout(() => setListoPressed(false), 150);
-    setNamePromptOpen(true);
-    setSaveError(null);
-    setSaveSuccess(false);
+    //setNamePromptOpen(true);
+    //setSaveError(null);
+    //setSaveSuccess(false);
+    setResultsOpen(true);
   };
 
   const handleSaveResult = async () => {
